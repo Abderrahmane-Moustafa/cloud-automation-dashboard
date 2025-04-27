@@ -1,0 +1,5 @@
+fastapi
+uvicorn[standard]
+apache-libcloud
+python-dotenv
+pydantic-settings
