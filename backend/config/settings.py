@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings
+from pydantic import BaseModel
 
 class Settings(BaseSettings):
     AWS_ACCESS_KEY: str
@@ -12,3 +13,10 @@ class Settings(BaseSettings):
         env_file = ".env"
 
 settings = Settings()
+
+class VMCreateRequest(BaseModel):
+    name: str
+    image_id: str
+    size_id: str
+    region: str
+
