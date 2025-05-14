@@ -5,3 +5,8 @@ class CreateAWSInstanceRequest(BaseModel):
     image_id: str
     size_id: str
     region: str = "us-east-1"
+
+
+class DeleteAWSInstanceRequest(BaseModel):
+    node_id: str
+    region: str = "us-east-1"
