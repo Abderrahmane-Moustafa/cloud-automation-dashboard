@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from backend.services.aws_service import list_aws_instances, create_aws_ec2, delete_aws_instance
-from backend.services.azure_service import list_azure_vms
-from backend.models.vm import CreateAWSInstanceRequest, DeleteAWSInstanceRequest
+from backend.services.azure_service import list_azure_vms, create_azure_vm
+from backend.models.vm import CreateAWSInstanceRequest, DeleteAWSInstanceRequest, CreateAzureVMRequest
 
 
 router = APIRouter(prefix="/api/vm", tags=["VM Operations"])
@@ -31,3 +31,15 @@ def create_vm(request: CreateAWSInstanceRequest):
 @router.delete("/aws/delete")
 def delete_vm_aws(request: DeleteAWSInstanceRequest):
     return delete_aws_instance(node_id=request.node_id, region=request.region)
+
+# Create VM Azure Endpoint
+@router.post("/azure/create")
+def create_azure_vm_api(payload: CreateAzureVMRequest):
+    return create_azure_vm(
+        name=payload.name,
+        image_id=payload.image_id,
+        size_id=payload.size_id,
+        location_id=payload.location_id
+    )
+
+

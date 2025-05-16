@@ -2,12 +2,12 @@ from pydantic_settings import BaseSettings
 from pydantic import BaseModel
 
 class Settings(BaseSettings):
-    AWS_ACCESS_KEY: str
-    AWS_SECRET_KEY: str
-    AZURE_SUBSCRIPTION_ID: str
-    AZURE_TENANT_ID: str
-    AZURE_CLIENT_ID: str
-    AZURE_SECRET: str
+    aws_access_key: str
+    aws_secret_key: str
+    azure_subscription_id: str
+    azure_tenant_id: str
+    azure_client_id: str
+    azure_secret: str
 
     class Config:
         env_file = ".env"
@@ -19,4 +19,3 @@ class VMCreateRequest(BaseModel):
     image_id: str
     size_id: str
     region: str
-
