@@ -7,10 +7,10 @@ from backend.config.settings import settings
 def list_azure_vms():
     cls = get_driver(Provider.AZURE_ARM)
     driver = cls(
-        tenant_id=settings.AZURE_TENANT_ID,
-        subscription_id=settings.AZURE_SUBSCRIPTION_ID,
-        key=settings.AZURE_CLIENT_ID,
-        secret=settings.AZURE_SECRET
+        tenant_id=settings.azure_tenant_id,
+        subscription_id=settings.azure_subscription_id,
+        key=settings.azure_client_id,
+        secret=settings.azure_secret
     )
 
     nodes = driver.list_nodes()

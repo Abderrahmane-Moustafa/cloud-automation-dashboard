@@ -5,14 +5,14 @@ from backend.config.settings import settings
 
 def list_aws_instances():
     cls = get_driver(Provider.EC2)
-    driver = cls(settings.AWS_ACCESS_KEY, settings.AWS_SECRET_KEY, region="us-east-1")
+    driver = cls(settings.aws_access_key, settings.aws_secret_key, region="us-east-1")
     nodes = driver.list_nodes()
     return [{"name": node.name, "state": node.state} for node in nodes]
 
 # Create an AWS Instance
 def create_aws_ec2(name, image_id, size_id, region="us-east-1"):
     cls = get_driver(Provider.EC2)
-    driver = cls(settings.AWS_ACCESS_KEY, settings.AWS_SECRET_KEY, region="us-east-1")
+    driver = cls(settings.aws_access_key, settings.aws_secret_key, region="us-east-1")
 
     sizes = driver.list_sizes()
     images = driver.list_images()
@@ -36,7 +36,7 @@ def create_aws_ec2(name, image_id, size_id, region="us-east-1"):
 # Delete an AWS instance
 def delete_aws_instance(node_id: str, region="us-east-1"):
     cls = get_driver(Provider.EC2)
-    driver = cls(settings.AWS_ACCESS_KEY, settings.AWS_SECRET_KEY, region="us-east-1")
+    driver = cls(settings.aws_access_key, settings.aws_secret_key, region="us-east-1")
 
     node = next((n for n in driver.list_nodes() if n.id == node_id), None)
 
