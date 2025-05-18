@@ -69,3 +69,39 @@ def create_azure_vm(name, image_id, size_id, location_id="brazilsouth"):
         "public_ips": node.public_ips,
         "private_ips": node.private_ips
     }
+
+
+# Delete an Azure VM Function
+def delete_azure_vm(node_id: str):
+    cls = get_driver(Provider.AZURE_ARM)
+    driver = cls(
+        tenant_id=settings.azure_tenant_id,
+        subscription_id=settings.azure_subscription_id,
+        key=settings.azure_client_id,
+        secret=settings.azure_secret
+    )
+
+    print("Listing Azure VMs visible to Libcloud:")
+    for n in driver.list_nodes():
+        print(f"• {n.name} --> {n.id}")
+
+    node = next((n for n in driver.list_nodes() if n.id == node_id), None)
+
+    if not node:
+        print("Node not found for deletion.")
+        return {"error": f"Instance with ID '{node_id}' not found."}
+
+    try:
+        print(f"Attempting to delete node: {node.id}")
+        result = driver.destroy_node(
+            node,
+            ex_destroy_nic=True,
+            ex_destroy_vhd=True,
+            ex_poll_qty=10,
+            ex_poll_wait=10
+        )
+        print(f"Deletion result: {result}")
+        return {"deleted": result, "node_id": node_id}
+    except Exception as e:
+        print(f"Exception during deletion: {e}")
+        return {"error": f"Failed to delete node: {str(e)}"}
