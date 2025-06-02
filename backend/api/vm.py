@@ -20,6 +20,7 @@ def get_azure_vms():
 
 @router.post("/aws/create")
 def create_vm(request: CreateAWSInstanceRequest):
+    # Pass the validated request fields to the EC2 creation function
     return create_aws_ec2(
         name=request.name,
         image_id=request.image_id,
