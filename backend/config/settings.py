@@ -9,6 +9,10 @@ class Settings(BaseSettings):
     azure_client_id: str
     azure_secret: str
 
+    # Azure Blob Storage credentials
+    azure_storage_account: str
+    azure_storage_key: str
+
     class Config:
         env_file = ".env"
 
