@@ -2,8 +2,9 @@ from libcloud.compute.types import Provider
 from libcloud.compute.providers import get_driver
 from libcloud.compute.base import NodeAuthSSHKey
 from backend.config.settings import settings
+from backend.utils.logger import logger  # ← Logging
 
-
+# List all Azure VMs available in the subscription
 def list_azure_vms():
     cls = get_driver(Provider.AZURE_ARM)
     driver = cls(
@@ -16,7 +17,14 @@ def list_azure_vms():
     nodes = driver.list_nodes()
     for node in nodes:
         print(f"• {node.name} --> {node.id}")
-    return [{"name": node.name, "state": node.state} for node in nodes]
+
+    logger.info(f"Listed {len(nodes)} Azure VMs.")
+    return [{
+        "name": node.name,
+        "state": node.state,
+        "public_ips": node.public_ips,
+        "private_ips": node.private_ips
+    } for node in nodes]
 
 
 # Function to create an Azure VM
@@ -32,22 +40,27 @@ def create_azure_vm(name, image_id, size_id, location_id="brazilsouth"):
         secret=settings.azure_secret
     )
 
+    logger.info(f"Request to create Azure VM: name={name}, image_id={image_id}, size_id={size_id}, location_id={location_id}")
+
     # Get the location object that matches the provided location_id
     locations = driver.list_locations()
     location = next((l for l in locations if l.id == location_id), None)
     if not location:
+        logger.error(f"Location '{location_id}' not found.")
         return {"error": f"Location '{location_id}' not found"}
 
     # Get the VM size object that matches the provided size_id
     sizes = driver.list_sizes(location=location)
     size = next((s for s in sizes if s.id == size_id), None)
     if not size:
+        logger.error(f"Size '{size_id}' not found in location '{location_id}'.")
         return {"error": f"Size '{size_id}' not found in location '{location_id}'"}
 
     # Get the image object (OS) by image_id and region
     try:
         image = driver.get_image(image_id=image_id, location=location)
     except Exception as e:
+        logger.error(f"Image '{image_id}' invalid: {e}")
         return {"error": f"Image '{image_id}' invalid: {e}"}
 
     # Define the public SSH key to be used for authentication to the VM
@@ -66,6 +79,8 @@ def create_azure_vm(name, image_id, size_id, location_id="brazilsouth"):
         ex_subnet="default",
         ex_use_managed_disks=True
     )
+
+    logger.info(f"Azure VM created successfully: id={node.id}, name={node.name}, state={node.state}")
 
     # Return relevant VM info for the dashboard or API user
     return {
@@ -100,12 +115,13 @@ def delete_azure_vm(node_id: str):
 
     # If no matching node is found, return an error message
     if not node:
+        logger.warning(f"Azure VM with ID '{node_id}' not found for deletion.")
         print("Node not found for deletion.")
         return {"error": f"Instance with ID '{node_id}' not found."}
 
     try:
         # Attempt to delete the node and clean up associated resources
-        print(f"Attempting to delete node: {node.id}")
+        logger.info(f"Attempting to delete Azure VM: id={node.id}, name={node.name}")
         result = driver.destroy_node(
             node,
             ex_destroy_nic=True,
@@ -113,9 +129,8 @@ def delete_azure_vm(node_id: str):
             ex_poll_qty=10,
             ex_poll_wait=10
         )
-        print(f"Deletion result: {result}")
+        logger.info(f"Deletion result for Azure VM '{node_id}': {result}")
         return {"deleted": result, "node_id": node_id}
     except Exception as e:
-        # Catch and report any error during deletion
-        print(f"Exception during deletion: {e}")
+        logger.error(f"Failed to delete Azure VM '{node_id}': {e}")
         return {"error": f"Failed to delete node: {str(e)}"}

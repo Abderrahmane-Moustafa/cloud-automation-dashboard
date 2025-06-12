@@ -4,3 +4,4 @@ apache-libcloud
 python-dotenv
 pydantic-settings
 pydantic
+python-multipart

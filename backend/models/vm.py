@@ -22,5 +22,3 @@ class CreateAzureVMRequest(BaseModel):
 
 class DeleteAzureVMRequest(BaseModel):
     node_id: str
-
-
