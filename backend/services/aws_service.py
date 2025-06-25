@@ -14,6 +14,7 @@ def list_aws_instances():
 
     # Return basic info about each AWS EC2 node
     return [{
+        "id": node.id,  # ← أضف هذا السطر
         "name": node.name,
         "state": node.state,
         "public_ips": node.public_ips,
@@ -37,8 +38,16 @@ def create_aws_ec2(name, image_id, size_id, region="us-east-1"):
     images = driver.list_images()
 
     # Filter the size and image by the provided IDs
-    size = [s for s in sizes if s.id == size_id][0]
-    image = [i for i in images if i.id == image_id][0]
+    size = next((s for s in sizes if s.id == size_id), None)
+    image = next((i for i in images if i.id == image_id), None)
+
+    if not size:
+        logger.error(f"Size '{size_id}' not found.")
+        return {"error": f"Size '{size_id}' not found."}
+
+    if not image:
+        logger.error(f"Image '{image_id}' not found.")
+        return {"error": f"Image '{image_id}' not found."}
 
     # Handle the case where either size or image is not found
     if not size or not image:

@@ -83,7 +83,8 @@ def check_azure_vm_status():
     vms = list_azure_vms()
     enhanced = []
     for vm in vms:
-        public_ip = vm.get("public_ips", [None])[0]
+        public_ips = vm.get("public_ips", [])
+        public_ip = public_ips[0] if public_ips else "No IP"
         is_up = ping_ip(public_ip)
         enhanced.append({
             "name": vm["name"],

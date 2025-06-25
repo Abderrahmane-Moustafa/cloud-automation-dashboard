@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cloud Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background-color: #f0f2f5; }
+        h2 { color: #333; margin-top: 40px; }
+        form { background-color: #fff; padding: 20px; margin-bottom: 30px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        label { display: block; margin-top: 10px; }
+        input[type=text], input[type=file] { width: 100%; padding: 8px; margin-top: 5px; border-radius: 4px; border: 1px solid #ccc; }
+        button { margin-top: 15px; padding: 10px 15px; border: none; border-radius: 4px; background-color: #007bff; color: white; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        .result, .status { margin-top: 10px; background: #e9f7ef; padding: 10px; border-left: 4px solid #28a745; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>Cloud Resource Automation Dashboard</h1>
+
+    <h2>Create AWS EC2 Instance</h2>
+    <form action="/dashboard/aws-vm" method="post">
+        <label>Name:</label>
+        <input type="text" name="name">
+        <label>Image ID:</label>
+        <input type="text" name="image_id">
+        <label>Size ID:</label>
+        <input type="text" name="size_id">
+        <label>Region:</label>
+        <input type="text" name="region" value="us-east-1">
+        <button type="submit">Create AWS Instance</button>
+    </form>
+
+    <h2>Create Azure VM</h2>
+    <form action="/dashboard/azure-vm" method="post">
+        <label>Name:</label>
+        <input type="text" name="name">
+        <label>Image ID:</label>
+        <input type="text" name="image_id">
+        <label>Size ID:</label>
+        <input type="text" name="size_id">
+        <label>Location ID:</label>
+        <input type="text" name="location_id" value="brazilsouth">
+        <button type="submit">Create Azure VM</button>
+    </form>
+
+    <h2>Upload to AWS S3</h2>
+    <form action="/dashboard/aws-upload" method="post" enctype="multipart/form-data">
+        <label>File:</label>
+        <input type="file" name="file">
+        <label>Bucket Name:</label>
+        <input type="text" name="container_name">
+        <label>Object Name:</label>
+        <input type="text" name="object_name">
+        <button type="submit">Upload to S3</button>
+    </form>
+
+    <h2>Upload to Azure Blob</h2>
+    <form action="/dashboard/azure-upload" method="post" enctype="multipart/form-data">
+        <label>File:</label>
+        <input type="file" name="file">
+        <label>Container Name:</label>
+        <input type="text" name="container_name">
+        <label>Object Name:</label>
+        <input type="text" name="object_name">
+        <button type="submit">Upload to Azure</button>
+    </form>
+
+    <h2>Check VM Status (Ping + CPU)</h2>
+    <form action="/dashboard/status" method="get">
+        <button type="submit">Check Status</button>
+    </form>
+
+    {% if aws_vm_result %}
+    <div class="result">
+        <strong>AWS VM Result:</strong> {{ aws_vm_result }}
+    </div>
+    {% endif %}
+
+    {% if azure_vm_result %}
+    <div class="result">
+        <strong>Azure VM Result:</strong> {{ azure_vm_result }}
+    </div>
+    {% endif %}
+
+    {% if aws_upload_result %}
+    <div class="result">
+        <strong>AWS Upload Result:</strong> {{ aws_upload_result }}
+    </div>
+    {% endif %}
+
+    {% if azure_upload_result %}
+    <div class="result">
+        <strong>Azure Upload Result:</strong> {{ azure_upload_result }}
+    </div>
+    {% endif %}
+
+    {% if aws_status %}
+    <h3>AWS VM Status:</h3>
+    <ul>
+        {% for vm in aws_status %}
+        <li class="status">
+            <strong>{{ vm.name }}</strong> | IP: {{ vm.ip }} | Ping: {{ vm.ping }} | CPU: {{ vm.cpu }}%
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% if azure_status %}
+    <h3>Azure VM Status:</h3>
+    <ul>
+        {% for vm in azure_status %}
+        <li class="status">
+            <strong>{{ vm.name }}</strong> | IP: {{ vm.ip }} | Ping: {{ vm.ping }} | CPU: {{ vm.cpu }}%
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</body>
+</html>
