@@ -3,3 +3,7 @@ __pycache__/
 .venv/
 .env
 .idea/
+azure_key
+azure_key.pub
+test_create_vm.py
+result.html

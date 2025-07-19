@@ -2,118 +2,386 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Cloud Dashboard</title>
-    <style>
-        body { font-family: Arial, sans-serif; padding: 20px; background-color: #f0f2f5; }
-        h2 { color: #333; margin-top: 40px; }
-        form { background-color: #fff; padding: 20px; margin-bottom: 30px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        label { display: block; margin-top: 10px; }
-        input[type=text], input[type=file] { width: 100%; padding: 8px; margin-top: 5px; border-radius: 4px; border: 1px solid #ccc; }
-        button { margin-top: 15px; padding: 10px 15px; border: none; border-radius: 4px; background-color: #007bff; color: white; cursor: pointer; }
-        button:hover { background-color: #0056b3; }
-        .result, .status { margin-top: 10px; background: #e9f7ef; padding: 10px; border-left: 4px solid #28a745; border-radius: 4px; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud Resource Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
 </head>
 <body>
-    <h1>Cloud Resource Automation Dashboard</h1>
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h1>☁️ Cloud Resource Dashboard</h1>
+            <div class="last-updated">Last updated: <span id="lastUpdated">Loading...</span></div>
+        </div>
 
-    <h2>Create AWS EC2 Instance</h2>
-    <form action="/dashboard/aws-vm" method="post">
-        <label>Name:</label>
-        <input type="text" name="name">
-        <label>Image ID:</label>
-        <input type="text" name="image_id">
-        <label>Size ID:</label>
-        <input type="text" name="size_id">
-        <label>Region:</label>
-        <input type="text" name="region" value="us-east-1">
-        <button type="submit">Create AWS Instance</button>
-    </form>
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('overview')">📊 Overview</button>
+            <button class="nav-tab" onclick="showTab('billing')">💰 Billing</button>
+            <button class="nav-tab" onclick="showTab('monitoring')">📈 Monitoring</button>
+            <button class="nav-tab" onclick="showTab('upload')">📁 File Upload</button>
+            <button class="nav-tab" onclick="showTab('create-vm')">🖥️ Create VM</button>
+            <button class="nav-tab" onclick="showTab('file-list')">📋 File Manager</button>
+            <button class="nav-tab" onclick="showTab('delete-vm')">🗑️ Delete VM</button>
+        </div>
 
-    <h2>Create Azure VM</h2>
-    <form action="/dashboard/azure-vm" method="post">
-        <label>Name:</label>
-        <input type="text" name="name">
-        <label>Image ID:</label>
-        <input type="text" name="image_id">
-        <label>Size ID:</label>
-        <input type="text" name="size_id">
-        <label>Location ID:</label>
-        <input type="text" name="location_id" value="brazilsouth">
-        <button type="submit">Create Azure VM</button>
-    </form>
+        <!-- Overview Tab -->
+        <div id="overview" class="tab-content active">
+            <!-- Key Metrics Row -->
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-number total-vms" id="totalVMs">-</div>
+                    <div class="stat-label">Total Virtual Machines</div>
+                    <div class="stat-detail">AWS + Azure</div>
+                </div>
 
-    <h2>Upload to AWS S3</h2>
-    <form action="/dashboard/aws-upload" method="post" enctype="multipart/form-data">
-        <label>File:</label>
-        <input type="file" name="file">
-        <label>Bucket Name:</label>
-        <input type="text" name="container_name">
-        <label>Object Name:</label>
-        <input type="text" name="object_name">
-        <button type="submit">Upload to S3</button>
-    </form>
+                <div class="stat-card">
+                    <div class="stat-number running-vms" id="runningVMs">-</div>
+                    <div class="stat-label">Running VMs</div>
+                    <div class="stat-detail">Currently active</div>
+                </div>
 
-    <h2>Upload to Azure Blob</h2>
-    <form action="/dashboard/azure-upload" method="post" enctype="multipart/form-data">
-        <label>File:</label>
-        <input type="file" name="file">
-        <label>Container Name:</label>
-        <input type="text" name="container_name">
-        <label>Object Name:</label>
-        <input type="text" name="object_name">
-        <button type="submit">Upload to Azure</button>
-    </form>
+                <div class="stat-card">
+                    <div class="stat-number stopped-vms" id="stoppedVMs">-</div>
+                    <div class="stat-label">Stopped VMs</div>
+                    <div class="stat-detail">Inactive instances</div>
+                </div>
 
-    <h2>Check VM Status (Ping + CPU)</h2>
-    <form action="/dashboard/status" method="get">
-        <button type="submit">Check Status</button>
-    </form>
+                <div class="stat-card">
+                    <div class="stat-number aws-cost" id="totalCost">$-</div>
+                    <div class="stat-label">Total Monthly Cost</div>
+                    <div class="stat-detail">AWS + Azure</div>
+                </div>
+            </div>
 
-    {% if aws_vm_result %}
-    <div class="result">
-        <strong>AWS VM Result:</strong> {{ aws_vm_result }}
+            <!-- Charts Row -->
+            <div class="charts-row">
+                <div class="chart-card">
+                    <div class="chart-title">VM Distribution by State</div>
+                    <canvas id="vmStateChart" width="400" height="300"></canvas>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-title">VMs by Cloud Provider</div>
+                    <canvas id="providerChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+
+            <!-- VM Status Table -->
+            <div class="card">
+                <div class="card-title">🖥️ Virtual Machine Status</div>
+                <div class="table-container">
+                    <table id="vmTable">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Provider</th>
+                                <th>State</th>
+                                <th>Public IP</th>
+                                <th>Ping Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="vmTableBody">
+                            <tr>
+                                <td colspan="5" style="text-align: center; padding: 40px;">Loading VM data...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Billing Tab -->
+        <div id="billing" class="tab-content">
+            <div class="billing-card">
+                <div class="card-title">💰 Cloud Billing Overview</div>
+
+                <!-- Current Month Costs -->
+                <div class="billing-summary">
+                    <div class="cost-summary aws-gradient">
+                        <div class="cost-amount" id="awsCurrentCost">$-</div>
+                        <div class="cost-label">AWS Current Month</div>
+                        <div class="cost-detail" id="awsCurrentMonth">-</div>
+                    </div>
+                    <div class="cost-summary azure-gradient">
+                        <div class="cost-amount" id="azureCurrentCost">$-</div>
+                        <div class="cost-label">Azure Current Month</div>
+                        <div class="cost-detail" id="azureCurrentMonth">-</div>
+                    </div>
+                </div>
+
+                <!-- 6-Month Summary -->
+                <div class="billing-summary">
+                    <div class="cost-summary aws-gradient">
+                        <div class="cost-amount" id="aws6MonthCost">$-</div>
+                        <div class="cost-label">AWS Last 6 Months</div>
+                        <div class="cost-detail" id="aws6MonthPeriod">-</div>
+                    </div>
+                    <div class="cost-summary azure-gradient">
+                        <div class="cost-amount" id="azure6MonthCost">$-</div>
+                        <div class="cost-label">Azure Last 6 Months</div>
+                        <div class="cost-detail" id="azure6MonthPeriod">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monitoring Tab -->
+        <div id="monitoring" class="tab-content">
+            <div class="card">
+                <div class="card-title">📈 System Monitoring</div>
+
+                <!-- Status Info -->
+                <div class="message info" style="margin-bottom: 20px;">
+                    <strong>ℹ️ CPU Monitoring:</strong> This chart shows average CPU usage over time for running VMs.
+                    Data is collected from AWS CloudWatch and Azure Monitor APIs.
+                    <br><small><strong>Note:</strong> Azure monitoring requires proper resource IDs. Check console for any errors.</small>
+                </div>
+
+                <!-- CPU Usage Chart -->
+                <div class="chart-card">
+                    <div class="chart-title">Average CPU Usage Over Time</div>
+                    <canvas id="cpuChart" width="400" height="300"></canvas>
+                </div>
+
+                <!-- Refresh Controls -->
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="refreshMonitoringData()">
+                        🔄 Refresh Data
+                    </button>
+                    <button class="btn btn-success" onclick="toggleAutoRefresh()">
+                        <span id="autoRefreshText">Enable Auto-Refresh</span>
+                    </button>
+                </div>
+
+                <!-- CPU Data Status -->
+                <div id="cpuStatus" class="message info" style="margin-top: 20px; display: none;">
+                    <strong>Last Update:</strong> <span id="lastCpuUpdate">-</span><br>
+                    <strong>Tracking:</strong> <span id="cpuDataPoints">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- File Upload Tab -->
+        <div id="upload" class="tab-content">
+            <div class="card">
+                <div class="card-title">📁 File Upload Manager</div>
+                <div id="uploadMessage"></div>
+
+                <div class="provider-selector">
+                    <div class="provider-btn active" onclick="selectUploadProvider('aws')">
+                        <strong>AWS S3</strong><br>
+                        <small>Upload to S3 Bucket</small>
+                    </div>
+                    <div class="provider-btn" onclick="selectUploadProvider('azure')">
+                        <strong>Azure Blob</strong><br>
+                        <small>Upload to Blob Storage</small>
+                    </div>
+                </div>
+
+                <form id="uploadForm" enctype="multipart/form-data">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="containerName">Container/Bucket Name *</label>
+                            <input type="text" id="containerName" name="container_name" required
+                                   placeholder="Enter bucket/container name">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="objectName">Object Name *</label>
+                            <input type="text" id="objectName" name="object_name" required
+                                   placeholder="Enter file name in storage">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Select File *</label>
+                        <div class="file-input" onclick="document.getElementById('uploadFile').click()">
+                            <input type="file" id="uploadFile" name="file" required>
+                            <div class="file-input-label">
+                                📁 Click to select file or drag & drop
+                            </div>
+                            <div id="fileSelected" class="file-selected" style="display: none;"></div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-full">
+                        ⬆️ Upload File
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Create VM Tab -->
+        <div id="create-vm" class="tab-content">
+            <div class="card">
+                <div class="card-title">🖥️ Create Virtual Machine</div>
+                <div id="createVmMessage"></div>
+
+                <div class="provider-selector">
+                    <div class="provider-btn active" onclick="selectVmProvider('aws')">
+                        <strong>AWS EC2</strong><br>
+                        <small>Create EC2 Instance</small>
+                    </div>
+                    <div class="provider-btn" onclick="selectVmProvider('azure')">
+                        <strong>Azure VM</strong><br>
+                        <small>Create Virtual Machine</small>
+                    </div>
+                </div>
+
+                <form id="createVmForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="vmName">VM Name *</label>
+                            <input type="text" id="vmName" name="name" required
+                                   placeholder="Enter VM name">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="vmImageId">Image ID *</label>
+                            <input type="text" id="vmImageId" name="image_id" required
+                                   placeholder="e.g., ami-12345678">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="vmSizeId">Instance Size *</label>
+                            <select id="vmSizeId" name="size_id" required>
+                                <option value="">Select instance size...</option>
+                                <!-- AWS options -->
+                                <option value="t2.micro" class="aws-option">t2.micro (AWS)</option>
+                                <option value="t2.small" class="aws-option">t2.small (AWS)</option>
+                                <option value="t2.medium" class="aws-option">t2.medium (AWS)</option>
+                                <option value="t3.micro" class="aws-option">t3.micro (AWS)</option>
+                                <option value="t3.small" class="aws-option">t3.small (AWS)</option>
+                                <!-- Azure options -->
+                                <option value="Standard_B1s" class="azure-option" style="display: none;">Standard_B1s (Azure)</option>
+                                <option value="Standard_B2s" class="azure-option" style="display: none;">Standard_B2s (Azure)</option>
+                                <option value="Standard_D2s_v3" class="azure-option" style="display: none;">Standard_D2s_v3 (Azure)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="vmRegion">Region/Location *</label>
+                            <select id="vmRegion" name="region" required>
+                                <option value="">Select region...</option>
+                                <!-- AWS regions -->
+                                <option value="us-east-1" class="aws-option">us-east-1 (AWS)</option>
+                                <option value="us-west-2" class="aws-option">us-west-2 (AWS)</option>
+                                <option value="eu-west-1" class="aws-option">eu-west-1 (AWS)</option>
+                                <!-- Azure locations -->
+                                <option value="brazilsouth" class="azure-option" style="display: none;">Brazil South (Azure)</option>
+                                <option value="eastus" class="azure-option" style="display: none;">East US (Azure)</option>
+                                <option value="westeurope" class="azure-option" style="display: none;">West Europe (Azure)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-success btn-full">
+                        🚀 Create Virtual Machine
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- File List Tab -->
+        <div id="file-list" class="tab-content">
+            <div class="card">
+                <div class="card-title">📋 File Manager</div>
+
+                <div class="two-column">
+                    <div>
+                        <h3>🟠 AWS S3 Files</h3>
+                        <div class="form-group">
+                            <label for="s3BucketName">S3 Bucket Name</label>
+                            <input type="text" id="s3BucketName" placeholder="Enter S3 bucket name">
+                            <button class="btn btn-primary" onclick="loadS3Files()" style="margin-top: 10px;">
+                                📂 Load Files
+                            </button>
+                        </div>
+                        <div id="s3FileList" class="file-list">
+                            <div style="text-align: center; padding: 20px; color: #666;">
+                                Enter bucket name and click "Load Files"
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3>🔵 Azure Blob Files</h3>
+                        <div class="form-group">
+                            <label for="azureContainerName">Azure Container Name</label>
+                            <input type="text" id="azureContainerName" placeholder="Enter Azure container name">
+                            <button class="btn btn-primary" onclick="loadAzureFiles()" style="margin-top: 10px;">
+                                📂 Load Files
+                            </button>
+                        </div>
+                        <div id="azureFileList" class="file-list">
+                            <div style="text-align: center; padding: 20px; color: #666;">
+                                Enter container name and click "Load Files"
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete VM Tab -->
+        <div id="delete-vm" class="tab-content">
+            <div class="card">
+                <div class="card-title">🗑️ Delete Virtual Machine</div>
+                <div id="deleteVmMessage"></div>
+
+                <div class="provider-selector">
+                    <div class="provider-btn active" onclick="selectDeleteProvider('aws')">
+                        <strong>AWS EC2</strong><br>
+                        <small>Delete EC2 Instance</small>
+                    </div>
+                    <div class="provider-btn" onclick="selectDeleteProvider('azure')">
+                        <strong>Azure VM</strong><br>
+                        <small>Delete Virtual Machine</small>
+                    </div>
+                </div>
+
+                <form id="deleteVmForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="deleteVmId">VM ID *</label>
+                            <input type="text" id="deleteVmId" name="node_id" required
+                                   placeholder="Enter VM ID to delete">
+                            <small style="color: #666; font-size: 0.9rem;">
+                                ⚠️ Get VM ID from the Overview tab table
+                            </small>
+                        </div>
+
+                        <div class="form-group" id="deleteRegionGroup">
+                            <label for="deleteRegion">Region</label>
+                            <select id="deleteRegion" name="region">
+                                <option value="us-east-1">us-east-1</option>
+                                <option value="us-west-2">us-west-2</option>
+                                <option value="eu-west-1">eu-west-1</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="message info">
+                        <strong>⚠️ Warning:</strong> This action cannot be undone. Please make sure you have the correct VM ID.
+                    </div>
+
+                    <button type="submit" class="btn btn-danger btn-full">
+                        🗑️ Delete Virtual Machine
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
-    {% endif %}
 
-    {% if azure_vm_result %}
-    <div class="result">
-        <strong>Azure VM Result:</strong> {{ azure_vm_result }}
-    </div>
-    {% endif %}
-
-    {% if aws_upload_result %}
-    <div class="result">
-        <strong>AWS Upload Result:</strong> {{ aws_upload_result }}
-    </div>
-    {% endif %}
-
-    {% if azure_upload_result %}
-    <div class="result">
-        <strong>Azure Upload Result:</strong> {{ azure_upload_result }}
-    </div>
-    {% endif %}
-
-    {% if aws_status %}
-    <h3>AWS VM Status:</h3>
-    <ul>
-        {% for vm in aws_status %}
-        <li class="status">
-            <strong>{{ vm.name }}</strong> | IP: {{ vm.ip }} | Ping: {{ vm.ping }} | CPU: {{ vm.cpu }}%
-        </li>
-        {% endfor %}
-    </ul>
-    {% endif %}
-
-    {% if azure_status %}
-    <h3>Azure VM Status:</h3>
-    <ul>
-        {% for vm in azure_status %}
-        <li class="status">
-            <strong>{{ vm.name }}</strong> | IP: {{ vm.ip }} | Ping: {{ vm.ping }} | CPU: {{ vm.cpu }}%
-        </li>
-        {% endfor %}
-    </ul>
-    {% endif %}
+    <!-- Modular JavaScript Files -->
+    <script src="{{ url_for('static', path='/js/utils.js') }}"></script>
+    <script src="{{ url_for('static', path='/js/charts.js') }}"></script>
+    <script src="{{ url_for('static', path='/js/data-loader.js') }}"></script>
+    <script src="{{ url_for('static', path='/js/event-handlers.js') }}"></script>
+    <script src="{{ url_for('static', path='/js/tab-manager.js') }}"></script>
+    <script src="{{ url_for('static', path='/js/file-manager.js') }}"></script>
+    <script src="{{ url_for('static', path='/js/monitoring.js') }}"></script>
+    <script src="{{ url_for('static', path='/js/main-dashboard.js') }}"></script>
 </body>
 </html>
