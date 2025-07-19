@@ -3129,3 +3129,45 @@
 2025-07-19 05:53:24,460 - INFO - Checking status and reachability of Azure VMs...
 2025-07-19 05:53:25,672 - INFO - Listed 5 AWS EC2 instances.
 2025-07-19 05:53:28,373 - INFO - Listed 1 Azure VMs.
+2025-07-19 10:02:48,671 - INFO - Listed 5 AWS EC2 instances.
+2025-07-19 10:02:49,776 - INFO - Listed 5 AWS EC2 instances.
+2025-07-19 10:02:51,549 - INFO - Listed 1 Azure VMs.
+2025-07-19 10:02:51,591 - INFO - Checking status and reachability of AWS instances...
+2025-07-19 10:02:51,591 - INFO - Checking status and reachability of Azure VMs...
+2025-07-19 10:02:52,649 - INFO - Listed 5 AWS EC2 instances.
+2025-07-19 10:02:56,222 - INFO - Listed 1 Azure VMs.
+2025-07-19 10:02:56,230 - INFO - Fetching CPU usage for AWS instance: i-085e9ddb39bf72afe
+2025-07-19 10:02:56,250 - INFO - Listed 1 Azure VMs.
+2025-07-19 10:02:57,026 - INFO - Fetching Azure CPU usage for resource: /subscriptions/a6bd69c1-f4b9-498e-970f-008dcc1d677f/resourceGroups/TH-MACHINE_GROUP/providers/Microsoft.Compute/virtualMachines/testolaksdj
+2025-07-19 10:03:13,609 - INFO - Listed 5 AWS EC2 instances.
+2025-07-19 10:03:16,532 - INFO - Listed 1 Azure VMs.
+2025-07-19 10:03:16,540 - INFO - Fetching CPU usage for AWS instance: i-085e9ddb39bf72afe
+2025-07-19 10:03:17,399 - INFO - Fetching Azure CPU usage for resource: /subscriptions/a6bd69c1-f4b9-498e-970f-008dcc1d677f/resourceGroups/TH-MACHINE_GROUP/providers/Microsoft.Compute/virtualMachines/testolaksdj
+2025-07-19 10:03:31,840 - INFO - Listing files in Azure Blob container: container1
+2025-07-19 10:03:32,802 - INFO - Found 4 files in container 'container1'
+2025-07-19 10:03:49,544 - INFO - Listed 5 AWS EC2 instances.
+2025-07-19 10:03:52,510 - INFO - Listed 1 Azure VMs.
+2025-07-19 10:03:52,541 - INFO - Checking status and reachability of Azure VMs...
+2025-07-19 10:03:52,541 - INFO - Checking status and reachability of AWS instances...
+2025-07-19 10:03:53,569 - INFO - Listed 5 AWS EC2 instances.
+2025-07-19 10:03:56,721 - INFO - Listed 1 Azure VMs.
+2025-07-19 10:04:23,929 - INFO - Request to create AWS EC2 instance: name=server1, image_id=ami-09e6f87a47903347c, size_id=t2.micro, region=us-east-1
+2025-07-19 10:04:48,347 - INFO - Listed 5 AWS EC2 instances.
+2025-07-19 10:04:51,669 - INFO - Listed 1 Azure VMs.
+2025-07-19 10:04:51,694 - INFO - Checking status and reachability of AWS instances...
+2025-07-19 10:04:51,694 - INFO - Checking status and reachability of Azure VMs...
+2025-07-19 10:04:52,720 - INFO - Listed 5 AWS EC2 instances.
+2025-07-19 10:04:55,729 - INFO - Listed 1 Azure VMs.
+2025-07-19 10:05:10,570 - INFO - AWS EC2 instance created: id=i-0543fd5715b3dd89e, name=server1, state=pending
+2025-07-19 10:05:11,943 - INFO - Listed 6 AWS EC2 instances.
+2025-07-19 10:05:15,030 - INFO - Listed 1 Azure VMs.
+2025-07-19 10:05:15,066 - INFO - Checking status and reachability of AWS instances...
+2025-07-19 10:05:15,066 - INFO - Checking status and reachability of Azure VMs...
+2025-07-19 10:05:16,294 - INFO - Listed 6 AWS EC2 instances.
+2025-07-19 10:05:18,341 - INFO - Listed 1 Azure VMs.
+2025-07-19 10:05:48,851 - INFO - Listed 6 AWS EC2 instances.
+2025-07-19 10:05:51,391 - INFO - Listed 1 Azure VMs.
+2025-07-19 10:05:51,414 - INFO - Checking status and reachability of AWS instances...
+2025-07-19 10:05:51,416 - INFO - Checking status and reachability of Azure VMs...
+2025-07-19 10:05:52,452 - INFO - Listed 6 AWS EC2 instances.
+2025-07-19 10:05:55,101 - INFO - Listed 1 Azure VMs.
